@@ -1,29 +1,26 @@
+import questionary
+
 from actions import show_tasks, add_task, delete_task, quit_app, load_tasks
 
 def todo_app():
     tasks = load_tasks()
 
     while True:
-        print("\n-=- What would you like to do? -=-")
-        print("\n1 - show tasks")
-        print("2 - add task")
-        print("3 - delete task")
-        print("q - quit")
+        action = questionary.select(
+            "What would you like to do?",
+            choices=["Show tasks", "Add task", "Delete task", "Quit"],
+        ).ask()
 
-        action = input("\nFill action or input q to quit: ")
-
-        if action == "1":
+        if action == "Show tasks":
             show_tasks(tasks)
-        elif action == "2":
+        elif action == "Add task":
             add_task(tasks)
-        elif action == "3":
+        elif action == "Delete task":
             delete_task(tasks)
-        elif action == "q":
+        elif action == "Quit":
             quit_app()
             break
-        else:
-            print("\nStop it!")
+        elif action is None:
+            break
 
 todo_app()
-
-

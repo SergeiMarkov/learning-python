@@ -1,5 +1,8 @@
 import json
 from pathlib import Path
+from rich.console import Console
+from rich.table import Table
+console = Console()
 
 TASKS_FILE = Path("tasks.json")
 
@@ -21,11 +24,14 @@ def save_tasks(tasks):
 
 def show_tasks(tasks):
     if not tasks:
-        print("\nList of tasks is empty!")
+        console.print("\nList of tasks is empty!")
         return
-    print("\nList of your tasks:")
+    table = Table(title="\nList of your tasks")
+    table.add_column("№")
+    table.add_column("Tasks")
     for number, task in enumerate(tasks, start=1):
-        print(f"{number}. {task}")
+        table.add_row(str(number), task)
+    console.print(table)
 
 def add_task(tasks):
     task = input("\nFill your task: ").strip()
