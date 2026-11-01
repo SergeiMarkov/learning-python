@@ -1,7 +1,10 @@
 import json
+import questionary
+
 from pathlib import Path
 from rich.console import Console
 from rich.table import Table
+
 console = Console()
 
 TASKS_FILE = Path("tasks.json")
@@ -11,7 +14,11 @@ def load_tasks():
         with TASKS_FILE.open() as file:
             tasks = json.load(file)
             if isinstance(tasks, list):
-                return tasks
+                return [{"text": task, "done": False}
+                if isinstance(task, str)
+                else task
+                for task in tasks
+                if isinstance(task, (str, dict))]
     except FileNotFoundError:
         pass
     except json.JSONDecodeError:
@@ -29,18 +36,40 @@ def show_tasks(tasks):
     table = Table(title="\nList of your tasks")
     table.add_column("№")
     table.add_column("Tasks")
+    table.add_column("Status")
     for number, task in enumerate(tasks, start=1):
-        table.add_row(str(number), task)
+        status = "☑" if task["done"] else "☐"
+        table.add_row(str(number), task["text"], status)
     console.print(table)
 
 def add_task(tasks):
-    task = input("\nFill your task: ").strip()
+    task = questionary.text("\nFill your task: ").ask()
+    task = task.strip()
     if not task:
-        print("\nYou can't add a empty task!")
+        console.print("\n[yellow]You can't add a empty task![/yellow]")
         return
-    tasks.append(task)
+    tasks.append({"text": task, "done": False})
     save_tasks(tasks)
-    print("Added task: ", task)
+    print("[green]Added task:[/green] ", task)
+
+def switch_status(tasks):
+    if not tasks:
+        console.print("\nList of tasks is empty!")
+        return
+    show_tasks(tasks)
+    try:
+        number = int(input("\nFill task number for switching status: "))
+    except ValueError:
+        console.print("\nFill the task with number!")
+        return
+    if number < 1 or number > len(tasks):
+        print("\nYou don't have task with that number!")
+        return
+    task = tasks[number - 1]
+    task["done"] = not task["done"]
+    save_tasks(tasks)
+    console.print(f"Switched status for task: {task['text']}")
+
 
 def delete_task(tasks):
     show_tasks(tasks)
